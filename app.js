@@ -1,3 +1,11 @@
+/* get data using contentful */
+const client = contentful.createClient({
+  // This is the space ID. A space is like a project folder in Contentful terms
+  space: "5shyx47mfngf",
+  // This is the access token for this space. Normally you get both ID and the token in the Contentful web app
+  accessToken: "gT9CaxbvUmDGO4-TGZSwN_v6vmfBRmzZEyjCxz8QZjw",
+});
+
 /* variable */
 const cartBtn = document.querySelector(".cart-btn");
 const closeCartBtn = document.querySelector(".close-cart");
@@ -17,10 +25,14 @@ let buttonsDOM = [];
 class Products {
   async getProduct() {
     try {
-      let result = await fetch("products.json");
-      let data = await result.json();
+      let contentful = await client.getEntries({
+        content_type: "oneClick",
+      });
 
-      let products = data.items;
+      /* let result = await fetch("products.json");
+      let data = await result.json(); */
+
+      let products = contentful.items;
       products = products.map((item) => {
         const { title, price } = item.fields;
         const { id } = item.sys;
@@ -162,30 +174,27 @@ class UI {
         cartContent.removeChild(removeItem.parentElement.parentElement);
         //remove from local storage
         this.removeItem(id);
-      }
-      else if (event.target.classList.contains("fa-chevron-up")) {
+      } else if (event.target.classList.contains("fa-chevron-up")) {
         //console.log(event);
         let addAmount = event.target;
         let id = addAmount.dataset.id;
-        let tempItem = cart.find(item=> item.id === id);
+        let tempItem = cart.find((item) => item.id === id);
         tempItem.amount = tempItem.amount + 1;
-        Storage.saveCart(cart)
+        Storage.saveCart(cart);
         this.setCartValues(cart);
-        addAmount.nextElementSibling.innerText = tempItem.amount
-      }
-      else if (event.target.classList.contains("fa-chevron-down")) {
+        addAmount.nextElementSibling.innerText = tempItem.amount;
+      } else if (event.target.classList.contains("fa-chevron-down")) {
         let lowerAmount = event.target;
         let id = lowerAmount.dataset.id;
         let tempItem = cart.find((item) => item.id === id);
         tempItem.amount = tempItem.amount - 1;
-        if(tempItem.amount>0){
+        if (tempItem.amount > 0) {
           Storage.saveCart(cart);
           this.setCartValues(cart);
-          lowerAmount.previousElementSibling.innerText = tempItem.amount
-        }
-        else{
-          cartContent.removeChild(lowerAmount.parentElement.parentElement)
-          this.removeItem(id)
+          lowerAmount.previousElementSibling.innerText = tempItem.amount;
+        } else {
+          cartContent.removeChild(lowerAmount.parentElement.parentElement);
+          this.removeItem(id);
         }
       }
     });
